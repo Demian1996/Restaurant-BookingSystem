@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>bookingTable</title>
+		<script src="vue.js"></script>
+		<script src="jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="component.js" type="text/javascript" charset="utf-8"></script>
+		<link rel="stylesheet" href="css/my.css" />
+		<link rel="stylesheet" href="css/booking.css" />
+		<style type="text/css">
+			.selected{
+				background: #efc;
+			}
+		</style>
+	</head>
+	<body>
+		<th3>日期:</th3>
+		<hr />
+		<div class="wrap">
+		<div class="item-table bookingtable" id = "bktable">
+			<table cellpadding="0">
+				<thead>
+					<tr>
+						<th>桌号</th>
+						<!--th>span{$:00}*20-->
+						<th class="timelist"><div>6:00</div><div>7:00</div><div>8:00</div><div>9:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div><div>14:00</div><div>15:00</div><div>16:00</div><div>17:00</div><div>18:00</div><div>19:00</div><div>20:00</div></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(v,k) in desk">
+						<td>{{ k }}</td>
+						<td class= "barlist">
+							<div 
+								is="timebar"
+								v-for="(x,index) in v" 
+								v-bind:title="typeof x.user == 'object'"
+								v-bind:style="getStyle(x.startTime,x.endTime)"
+								v-on:remove="v.splice(index, 1)"
+							>
+							</div>
+							<div v-bind:data-deskid="k" class="selectWrap"><div class ="select-bar" v-for="i in 30" :data-num="i">&nbsp;</div></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		</div>
+<!--<div id="todo-list-example">
+  <input
+    v-model="newTodoText"
+    v-on:keyup.enter="addNewTodo"
+    placeholder="Add a todo"
+  >
+  <ul>
+    <li
+      is="todo-item"
+      v-for="(todo, index) in todos"
+      v-bind:key="todo"
+      v-bind:title="todo"
+      v-on:remove="todos.splice(index, 1)"
+    ></li>
+  </ul>
+</div>-->
+		<script>
+Vue.component('timebar',{
+	template:`
+		<div :class = "'timebar '+ (title ?'mytip':'')">
+			<span v-on:click="$emit('remove')" :class=' title ? "quxiao":"none" '>x</span>
+		</div>
+	`,
+	methods:{
+		notice(e){
+			if( confirm("Are you sure?") ){
+				this.$emit('remove');
+			}
+		},
+	},
+	props :['title']
+})
+//Vue.component('todo-item', {
+//template: `
+//  <li>
+//    {{ title }}
+//    <button v-on:click="notice">X</button>
+//  </li>
+//`,
+//methods:{
+//	notice:function(){
+//  	this.$emit("remove");
+// 	},
+//},
+//props: ['title']
+//})
+//new Vue({
+//el: '#todo-list-example',
+//data: {
+//  newTodoText: '',
+//  todos: [
+//    'Do the dishes',
+//    'Take out the trash',
+//    'Mow the lawn'
+//  ]
+//},
+//methods: {
+//  addNewTodo: function () {
+//    this.todos.push(this.newTodoText)
+//    this.newTodoText = ''
+//  },
+//  notice:function(){
+//  	this.$emit("remove");
+//  }
+//}
+//})
+			var Bktable = new Vue ({
+				el:"#bktable",
+				data:{
+					viewer:"LiuMiao",
+					desk:{
+						"1":[
+							{ startTime:6.5 ,endTime:8.5,user :"idd" },
+							{ startTime:8.5 ,endTime:9,user:{name:"LiuMiao"}},
+						],
+						"2":[
+							{ startTime:14.5 ,endTime:16 ,user:"" },
+							{ startTime:11 ,endTime:12 ,user:"" },
+						],
+						"3":[],
+						"4":[{startTime:18 ,endTime:20 ,user:""}],
+						"5":[],
+					},
+				},
+				methods:{
+					getStyle: function (s,e){
+						var left = (s - 6)*6.25*12+1;
+						var width = (e - s)*6.25*12+1;
+						return "left:"+left + "px;width:" +　width+"px;";
+					},
+					drawSelect:function (e){
+						console.log(e.target);
+					}
+				}
+			});
+			var downTime=0;
+			$(".selectWrap").on("mousedown",function (e){
+				var col = $(e.target).closest(".select-bar")
+				if ( col[0] ){
+					console.dir(col[0]);
+					console.dir(this);
+				}else{
+					return; 
+				}
+				var start = +col[0].dataset.num;
+				var end;
+				var onep;
+				function selectMore(e){
+					var col = $(e.target).closest(".select-bar")
+					if ( col[0] ){
+						console.log(col[0]);
+						console.log(this);
+					}else{return ;}
+					
+					end  = +col[0].dataset.num;
+					if(end  >  start){
+						onep.startTime = (start - 1)*0.5 + 6;
+						onep.endTime = (end - 1)*0.5 + 6.5
+					}else{
+						onep.startTime = (end - 1)*0.5 + 6;
+						onep.endTime = (start -1)*0.5 + 6.5;
+					}
+				}
+				switch(downTime){
+					case 0:
+						onep = {startTime:(start - 1)*0.5 + 6,endTime:(start - 1)*0.5 + 6.5,user:{name:Bktable.viewer}};
+						Bktable.desk[this.dataset.deskid].push(onep);
+						downTime=1; 
+						this.style.zIndex = 30;
+						this.addEventListener("mouseover",selectMore);
+						this.selectMore = selectMore;
+						return ;
+					case 1:
+						downTime = 0; 
+						this.style.zIndex = 8;
+						console.log(Bktable.desk);
+						this.removeEventListener("mouseover",this.selectMore);
+						return ;
+				}
+				
+			})
+			initMove("#bktable");
+		</script>
+	</body>
+</html>
