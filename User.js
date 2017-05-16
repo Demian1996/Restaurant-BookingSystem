@@ -11,7 +11,7 @@ function User(name, phoneNumber, email) {
 	this.email = email;
 }
 //打开数据库
-let openDB = function () {
+function openDB() {
 	return new Promise(function (resolve, reject) {
 		restaurantdb.open(function (err, db) {
 			if(err){
@@ -24,7 +24,7 @@ let openDB = function () {
 	});
 }
 //获得集合
-let getC = function (db) {
+function getC(db) {
 	return new Promise(function (resolve, reject) {
 		db.collection('users', function (err, collection) {
 			if(err){
@@ -37,7 +37,7 @@ let getC = function (db) {
 	});
 } 
 //查询user
-let queryU = function (user, collection) {
+function queryU(user, collection) {
 	return new Promise(function (resolve, reject) {
 		collection.findOne({
 			'name': user.name,
@@ -55,7 +55,7 @@ let queryU = function (user, collection) {
 	});
 }
 //插入user
-let addU = function (user, collection) {
+function addU(user, collection) {
 	return new Promise(function (resolve, reject) {
 		collection.insert(user, {
 			safe: true
@@ -84,6 +84,7 @@ User.addUser = function (user) {
 	return openDB().then(function (db) {
 		return getC(db);
 	}).then(function (collection) {
+		console.log(user);
 		return addU(user, collection);
 	});
 };

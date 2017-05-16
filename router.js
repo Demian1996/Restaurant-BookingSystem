@@ -9,24 +9,34 @@ module.exports = function (app) {
 		let name = req.body.name;
 		let phoneNumber = req.body.phoneNumber;
 		let email = req.body.email;
-		let user = new User(name, phoneNumber, email);
-		User.queryUser(user).then(function (user) {
+		let adduser = new User(name, phoneNumber, email);
+		// User.addUser(user);
+		User.queryUser(adduser).then(function (user) {
 			return new Promise(function (resolve) {
 				if(user){
 					console.log('用户已经存在');
-					res.redirect('/');
+					res.redirect('/select');
+					reject();
 				}
-				resolve(user);
+				else{
+					console.log('我要添加'+adduser);
+					resolve(adduser);
+				}
 			});
-		}).then(User.addUser(user)).then(function () {
+		}).then(function (user) {
+			return User.addUser(user);
+		}).then(function () {
 			console.log('添加成功');
-			res.redirect('/');
+			res.redirect('/select');
 		}).catch(function (err) {
-			console.log(err);
+			if(err){
+				console.log(err);
+			}
 		});
-
 	});
 	app.get('/select', function (req, res) {
+
+		//默认发送今天的日期
 		res.send('ok');
 	})
 }
