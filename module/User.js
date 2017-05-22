@@ -10,12 +10,12 @@ function User(name, phoneNumber, email) {
 	this.phoneNumber = phoneNumber;
 	this.email = email;
 }
+
 //打开数据库
 function openDB() {
 	return new Promise(function (resolve, reject) {
 		restaurantdb.open(function (err, db) {
 			if(err){
-				restaurantdb.close();
 				reject(err);
 			}
 			console.log('open is ok');
@@ -28,7 +28,6 @@ function getC(db) {
 	return new Promise(function (resolve, reject) {
 		db.collection('users', function (err, collection) {
 			if(err){
-				restaurantdb.close();
 				reject(err);
 			}
 			console.log('get is ok');
@@ -44,23 +43,34 @@ function queryU(user, collection) {
 			'phoneNumber': user.phoneNumber,
 			'email': user.email
 		}, function (err, user) {
-			restaurantdb.close();
-			if(err){
+			if(err){			
 				reject(err);
 			}
-			// console.log(user);
 			console.log('query is ok');
-			resolve(user);
+			resolve([user, collection]);
 		});
 	});
 }
-//插入user
-function addU(user, collection) {
+
+User.queryUser = function (user) {
+	// console.log(user);
+	return openDB()
+		.then(function (db) {
+			return getC(db);
+		})
+		.then(function (collection) {
+			// console.log(collection);
+			return queryU(user, collection);
+		});
+};
+
+User.addUser = function (arr) {
+	let user = arr[0];
+	let collection = arr[1];
 	return new Promise(function (resolve, reject) {
 		collection.insert(user, {
 			safe: true
 		}, function (err) {
-			restaurantdb.close();
 			if(err){
 				reject(err);
 			}
@@ -71,20 +81,37 @@ function addU(user, collection) {
 	});
 }
 
-User.queryUser = function (user) {
-	// console.log(user);
-	return openDB().then(function (db) {
-		return getC(db);
-	}).then(function (collection) {
-		// console.log(collection);
-		return queryU(user, collection);
+
+//关闭数据库
+User.close = function closeDB() {
+	return Promise.resolve().then(function () {
+		restaurantdb.close();
 	});
-};
-User.addUser = function (user) {
-	return openDB().then(function (db) {
-		return getC(db);
-	}).then(function (collection) {
-		console.log(user);
-		return addU(user, collection);
-	});
-};
+}
+
+// function addU(user, collection) {
+// 	return new Promise(function (resolve, reject) {
+// 		collection.insert(user, {
+// 			safe: true
+// 		}, function (err) {
+
+// 			if(err){
+// 				restaurantdb.close();
+// 				reject(err);
+// 			}
+// 			console.log('add is ok');
+// 			console.log(user);
+// 			resolve();
+// 		})
+// 	});
+// }
+// User.addUser = function (user) {
+// 	return openDB()
+// 		.then(function (db) {
+// 			return getC(db);
+// 		})
+// 		.then(function (collection) {
+// 			console.log(user);
+// 			return addU(user, collection);
+// 		});
+// };

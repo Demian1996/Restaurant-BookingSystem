@@ -103,8 +103,6 @@ function Point(name,par){
 				Arg.y += one.y;
 		},
 		multiplyBy(one){
-//				Arg.x = Math.round(Arg.x*one.x);
-//				Arg.y = Math.round(Arg.y*one.y);
 			Arg.x *= one.x ;
 			Arg.y *= one.y ;
 		}
@@ -164,9 +162,6 @@ function Point(name,par){
 	
 	return ret;
 }
-function setAbsolute($doc){
-	$doc.css("position","absolute");
-}
 function initMove(container,filter,toucher){
 	function startMove(e){
 		var $doc = $(this);
@@ -175,7 +170,7 @@ function initMove(container,filter,toucher){
 		window.addEventListener("mousemove",onMove);
 		window.addEventListener("mouseup",endMove);
 		mouse.setBy( e );
-		
+		console.log("what?????");
 		function onMove(e){
 			e.preventDefault();
 			vector.setBy( mouse.diffTo( e ) )
@@ -283,4 +278,91 @@ function initScroll(){
 		container.on( "mousedown",startMove );
 	}
 }
-
+function initShower(background,container,...arg){
+	var docs = [];
+	var Time = {currunt:0,end:0,start:0};
+	for (var i = 0 ; i< arguments.length;i++){
+		docs = docs.concat($(arguments[i]).get());
+	}
+	function setOpacity(){
+		if(Time.all <= 0) {return false;}
+		var opacity = (Time.currunt - Time.start)/Time.all;
+		if(opacity > 1){
+			opacity =1;
+		};
+		docs.forEach(function (a,b,c,d){
+			a.style.opacity = opacity;
+		})
+		if(opacity >= 1 ){
+			return false;
+		}
+		return true;
+	}
+	function initNosee(){
+		docs.forEach(function (a,b,c,d){
+			a.style.opacity = 0;
+			a.style.display = "block";
+		})
+	}
+	function draw(){
+		Time.currunt = new Date().valueOf();
+		return  setOpacity();
+	}
+	function show(time,callback){
+		Time.start = new Date().valueOf();
+		Time.all = time;
+		Time.end  = Time.start + Time.time;
+		initNosee();
+		setAnimation (draw,callback);
+	}
+	function setAnimation(func,callback){
+		requestAnimationFrame(function running(){
+			if(func()) requestAnimationFrame(running);
+			else{
+				if(callback)callback();
+			} 
+		});
+	}
+	function close(){
+		docs.forEach(function (a,b,c,d){
+			a.style.opacity = 0;
+			a.style.display = "none";
+		})
+	}
+	function select(onestr){
+		$(container)
+		.find('#'+onestr)[0]
+		.select();
+	}
+	return {
+		close,
+		show,
+		select
+	}
+}
+var Tool={
+	SuperExtend(obj1,obj2,optionstr=""){ //Help Fuzhi in Vue
+		if(optionstr){
+			for (var x in obj1){
+				obj1[x][option]  = obj2[x][optionstr];
+			}
+		}else{
+			for (var x in obj1){
+				obj1[x]  = obj2[x];
+			}
+		}
+	},
+	whatchange(obj,optionstr){
+		Object.defineProperty(obj,optionstr,{
+			set(v){
+				console.log(v,this);
+				this.$$option = v;
+			},
+			get(){
+				return this.$$option;
+			}
+		});
+	},
+	TempStore:{}
+	
+}

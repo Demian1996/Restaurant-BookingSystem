@@ -4,6 +4,10 @@
 		<meta charset="UTF-8">
 		<title>bookingTable</title>
 		<script src="vue.js"></script>
+		<!-- 引入elementUI样式 -->
+		<link rel="stylesheet" href="https://unpkg.com/element-ui@1.3.3/lib/theme-default/index.css">
+		<!-- 引入elementUI组件库 -->
+		<script src="https://unpkg.com/element-ui@1.3.3/lib/index.js"></script>
 		<script src="jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
 		<script src="component.js" type="text/javascript" charset="utf-8"></script>
 		<link rel="stylesheet" href="css/my.css" />
@@ -15,8 +19,19 @@
 		</style>
 	</head>
 	<body>
-		<th3>日期:</th3>
-		<hr />
+		<!-- <button id="ttttt">ceshi</button> -->
+
+		<!-- datepicker -->
+		<div id="datepicker">
+			<template>
+			  <div class="block">
+			    <span class="demonstration">日期:</span>
+			    <el-date-picker v-model="date" type="date" placeholder="选择日期" :picker-options="pickerOptions0">
+			    </el-date-picker>
+			  </div>
+			</template>
+		</div>
+
 		<div class="wrap">
 		<div class="item-table bookingtable" id = "bktable">
 			<table cellpadding="0">
@@ -24,7 +39,7 @@
 					<tr>
 						<th>桌号</th>
 						<!--th>span{$:00}*20-->
-						<th class="timelist"><div>6:00</div><div>7:00</div><div>8:00</div><div>9:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div><div>14:00</div><div>15:00</div><div>16:00</div><div>17:00</div><div>18:00</div><div>19:00</div><div>20:00</div></th>
+						<th class="timelist"><div>6</div><div class="half">:30</div><div>7</div><div class="half">:30</div><div>8</div><div class="half">:30</div><div>9</div><div class="half">:30</div><div>10</div><div class="half">:30</div><div>11</div><div class="half">:30</div><div>12</div><div class="half">:30</div><div>13</div><div class="half">:30</div><div>14</div><div class="half">:30</div><div>15</div><div class="half">:30</div><div>16</div><div class="half">:30</div><div>17</div><div class="half">:30</div><div>18</div><div class="half">:30</div><div>19</div><div class="half">:30</div><div>20</div></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -33,10 +48,15 @@
 						<td class= "barlist">
 							<div 
 								is="timebar"
+								v-if = "x.arg.show"
 								v-for="(x,index) in v" 
-								v-bind:title="typeof x.user == 'object'"
-								v-bind:style="getStyle(x.startTime,x.endTime)"
-								v-on:remove="v.splice(index, 1)"
+								v-bind:title="!!x.user.name"
+								v-bind:style="getStyle(x)"
+								v-bind:select="x.arg.select"
+								v-on:mouseover="x.arg.hover = 1"
+								v-on:mouseout="x.arg.hover = 0"
+								v-on:remove="cancel(x,k)"
+								v-on:click = "clickOnce(x)"
 							>
 							</div>
 							<div v-bind:data-deskid="k" class="selectWrap"><div class ="select-bar" v-for="i in 30" :data-num="i">&nbsp;</div></div>
@@ -46,148 +66,65 @@
 			</table>
 		</div>
 		</div>
-<!--<div id="todo-list-example">
-  <input
-    v-model="newTodoText"
-    v-on:keyup.enter="addNewTodo"
-    placeholder="Add a todo"
-  >
-  <ul>
-    <li
-      is="todo-item"
-      v-for="(todo, index) in todos"
-      v-bind:key="todo"
-      v-bind:title="todo"
-      v-on:remove="todos.splice(index, 1)"
-    ></li>
-  </ul>
-</div>-->
-		<script>
-Vue.component('timebar',{
-	template:`
-		<div :class = "'timebar '+ (title ?'mytip':'')">
-			<span v-on:click="$emit('remove')" :class=' title ? "quxiao":"none" '>x</span>
+		<div class ="viewer">
+			<div id="itemMes" class = "container" >
+				<h2>查看详细信息</h2>
+				<div class="item-table messageshow-table">
+					<table cellpadding="0">
+						<tbody>
+							<tr>
+								<td>桌号</td>
+								<td>{{ tableId }}</td>
+							</tr>
+							<tr>
+								<td>时间</td>
+								<td>{{ this.getTime() }}</td>
+							</tr>
+							<tr v-for="(item , key) in items">
+								<td>{{ item.text }}</td>
+								<td><input type="text" v-model="user[key]"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<button class="btn" v-on:click="click">提交</button>
+			</div>
+			<div class="bookinglist" id = "bookingResult">
+				<h3>预约一览: <button v-on:click="comfirmResult" >确定</button></h3>
+				<div  v-for=" (desk,deskIndex) in result" v-if="desk.length > 0">
+					<h4>桌号:{{ deskIndex }}</h4>
+					<div class="item-table messageshow-table">
+						<table cellpadding=0>
+							<thead>
+								<tr>
+									<th>姓名</th><th>时间</th>
+								</tr>
+							</thead>
+							<tbody>
+								<template v-for="(onep,index) in desk" v-if="onep.arg.show">
+									<tr>
+										<td>{{ getName(onep) }}</td><td>{{　getTime(onep)　}}</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
 		</div>
-	`,
-	methods:{
-		notice(e){
-			if( confirm("Are you sure?") ){
-				this.$emit('remove');
-			}
-		},
-	},
-	props :['title']
-})
-//Vue.component('todo-item', {
-//template: `
-//  <li>
-//    {{ title }}
-//    <button v-on:click="notice">X</button>
-//  </li>
-//`,
-//methods:{
-//	notice:function(){
-//  	this.$emit("remove");
-// 	},
-//},
-//props: ['title']
-//})
-//new Vue({
-//el: '#todo-list-example',
-//data: {
-//  newTodoText: '',
-//  todos: [
-//    'Do the dishes',
-//    'Take out the trash',
-//    'Mow the lawn'
-//  ]
-//},
-//methods: {
-//  addNewTodo: function () {
-//    this.todos.push(this.newTodoText)
-//    this.newTodoText = ''
-//  },
-//  notice:function(){
-//  	this.$emit("remove");
-//  }
-//}
-//})
-			var Bktable = new Vue ({
-				el:"#bktable",
-				data:{
-					viewer:"LiuMiao",
-					desk:{
-						"1":[
-							{ startTime:6.5 ,endTime:8.5,user :"idd" },
-							{ startTime:8.5 ,endTime:9,user:{name:"LiuMiao"}},
-						],
-						"2":[
-							{ startTime:14.5 ,endTime:16 ,user:"" },
-							{ startTime:11 ,endTime:12 ,user:"" },
-						],
-						"3":[],
-						"4":[{startTime:18 ,endTime:20 ,user:""}],
-						"5":[],
-					},
-				},
-				methods:{
-					getStyle: function (s,e){
-						var left = (s - 6)*6.25*12+1;
-						var width = (e - s)*6.25*12+1;
-						return "left:"+left + "px;width:" +　width+"px;";
-					},
-					drawSelect:function (e){
-						console.log(e.target);
-					}
-				}
-			});
-			var downTime=0;
-			$(".selectWrap").on("mousedown",function (e){
-				var col = $(e.target).closest(".select-bar")
-				if ( col[0] ){
-					console.dir(col[0]);
-					console.dir(this);
-				}else{
-					return; 
-				}
-				var start = +col[0].dataset.num;
-				var end;
-				var onep;
-				function selectMore(e){
-					var col = $(e.target).closest(".select-bar")
-					if ( col[0] ){
-						console.log(col[0]);
-						console.log(this);
-					}else{return ;}
-					
-					end  = +col[0].dataset.num;
-					if(end  >  start){
-						onep.startTime = (start - 1)*0.5 + 6;
-						onep.endTime = (end - 1)*0.5 + 6.5
-					}else{
-						onep.startTime = (end - 1)*0.5 + 6;
-						onep.endTime = (start -1)*0.5 + 6.5;
-					}
-				}
-				switch(downTime){
-					case 0:
-						onep = {startTime:(start - 1)*0.5 + 6,endTime:(start - 1)*0.5 + 6.5,user:{name:Bktable.viewer}};
-						Bktable.desk[this.dataset.deskid].push(onep);
-						downTime=1; 
-						this.style.zIndex = 30;
-						this.addEventListener("mouseover",selectMore);
-						this.selectMore = selectMore;
-						return ;
-					case 1:
-						downTime = 0; 
-						this.style.zIndex = 8;
-						console.log(Bktable.desk);
-						this.removeEventListener("mouseover",this.selectMore);
-						return ;
-				}
-				
-			})
-			initMove("#bktable");
-		</script>
+		<div class="itemview"></div>
+		<div class="background" style="display:none"></div>
+		<div class="container login" id="form" style="display:none">
+			<form action="/" method="post" class = "form">
+			<h2>{{ message }}</h2>
+				<template v-for="(item,key) in items">
+					<label :for="key">{{ item.text }}</label><br /><input v-model="item.value" class="input" :id="key" :name="key" type="item.text" :placeholder="key"><br />
+				</template>
+				<button v-on:click="click" class="btn">提交</button>
+			</form>
+		</div>
+
+		<script src= "VueRender.js"></script>
+		<script src = "booking.js"> </script> 
 	</body>
 </html>
